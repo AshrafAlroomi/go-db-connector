@@ -1,10 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
+	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
@@ -43,25 +46,46 @@ func connect() {
 		fmt.Println("Connection success")
 	}
 
-	defer db.Close()
+}
+func get_users(w http.ResponseWriter, r *http.Request) {
+	var users []User
+	db.Find(&users)
 
+	json.NewEncoder(w).Encode(users)
+
+}
+
+func get_user(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	var user User
+
+	db.First(&user, params["id"])
+
+	json.NewEncoder(w).Encode(user)
+}
+
+func create_user(w http.ResponseWriter, r *http.Request) {
+	var user User
+	json.NewDecoder(r.Body).Decode(&user)
+	newUser := db.Create(&user)
+
+	json.NewEncoder(w).Encode(newUser)
+}
+
+func do_migrations(w http.ResponseWriter, r *http.Request) {
+	db.AutoMigrate(&User{})
 }
 
 func main() {
 	connect()
-}
 
-func do_migrations() {
-	db.AutoMigrate(&User{})
-}
+	router := mux.NewRouter()
 
-func insert(userBody []UserBody) {
-	for i := range userBody {
-		user := User{Name: userBody[i].name, Email: userBody[i].email}
-		db.Create(user)
-	}
-}
-
-func get() {
+	router.HandleFunc("/users", get_users).Methods("GET")
+	router.HandleFunc("/users", create_user).Methods("POST")
+	router.HandleFunc("/migrate", do_migrations).Methods("GET")
+	http.ListenAndServe(":8007", router)
+	defer db.Close()
 
 }
