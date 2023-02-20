@@ -116,7 +116,8 @@ curl --location --request DELETE 'http://localhost:8007/users/1' \
 ```
 response
 ```bash
-success 200```
+success 200
+```
 
 update user
 ```bash
