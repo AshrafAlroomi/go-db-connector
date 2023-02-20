@@ -73,6 +73,24 @@ func create_user(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(newUser)
 }
 
+func delete_user(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	var user User
+	db.First(&user, params["id"])
+	db.Delete(&user)
+	json.NewEncoder(w).Encode(user)
+}
+
+func update_user(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	var user User
+	json.NewDecoder(r.Body).Decode(&user)
+
+	db.Update(&user, params["id"])
+
+	json.NewEncoder(w).Encode(user)
+}
+
 func do_migrations(w http.ResponseWriter, r *http.Request) {
 	db.AutoMigrate(&User{})
 }
@@ -84,6 +102,8 @@ func main() {
 
 	router.HandleFunc("/users", get_users).Methods("GET")
 	router.HandleFunc("/users", create_user).Methods("POST")
+	router.HandleFunc("/users", delete_user).Methods("DELETE")
+	router.HandleFunc("/users", update_user).Methods("PUT")
 	router.HandleFunc("/migrate", do_migrations).Methods("GET")
 	http.ListenAndServe(":8007", router)
 	defer db.Close()
