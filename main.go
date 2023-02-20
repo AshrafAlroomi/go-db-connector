@@ -102,8 +102,8 @@ func main() {
 
 	router.HandleFunc("/users", get_users).Methods("GET")
 	router.HandleFunc("/users", create_user).Methods("POST")
-	router.HandleFunc("/users", delete_user).Methods("DELETE")
-	router.HandleFunc("/users", update_user).Methods("PUT")
+	router.HandleFunc("/users/{id}", delete_user).Methods("DELETE")
+	router.HandleFunc("/users/{id}", update_user).Methods("PUT")
 	router.HandleFunc("/migrate", do_migrations).Methods("GET")
 	http.ListenAndServe(":8007", router)
 	defer db.Close()
